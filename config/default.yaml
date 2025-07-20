@@ -1,0 +1,522 @@
+# Default configuration for Texas WBE Opportunity Discovery Engine
+
+# Application settings
+app:
+  name: "Texas WBE Opportunity Discovery Engine"
+  version: "0.1.0"
+  environment: "development"
+  debug: false
+
+# Database configuration
+database:
+  host: "localhost"  # Changed from "db" for local development
+  port: 5432
+  name: "wbe_opportunities"
+  user: "wbe_user"
+  # password: ""  # Set via environment variable
+  pool_size: 10
+  max_overflow: 20
+  echo: false
+
+# AI/ML configuration
+ai:
+  provider: "google"
+  model: "gemini-pro"
+  api_key: ""  # Set via environment variable
+  max_tokens: 4096
+  temperature: 0.1
+  timeout: 30
+  
+  # Evaluation Configuration
+  evaluation:
+    # Model parameters for different evaluation tasks
+    models:
+      primary:
+        model: "gemini-pro"
+        temperature: 0.1
+        max_tokens: 4096
+        top_p: 0.95
+        top_k: 40
+      
+      judge:
+        model: "gemini-pro"
+        temperature: 0.0  # More deterministic for evaluation
+        max_tokens: 2048
+        top_p: 0.9
+        top_k: 20
+      
+      creative:
+        model: "gemini-pro"
+        temperature: 0.7
+        max_tokens: 4096
+        top_p: 0.95
+        top_k: 40
+    
+    # Scoring parameters
+    scoring:
+      relevance:
+        weight: 0.4
+        threshold_excellent: 0.9
+        threshold_good: 0.7
+        threshold_acceptable: 0.5
+      
+      accuracy:
+        weight: 0.3
+        threshold_excellent: 0.95
+        threshold_good: 0.8
+        threshold_acceptable: 0.6
+      
+      coherence:
+        weight: 0.2
+        threshold_excellent: 0.9
+        threshold_good: 0.75
+        threshold_acceptable: 0.6
+      
+      safety:
+        weight: 0.1
+        toxicity_threshold: 0.2
+        bias_threshold: 0.3
+        hallucination_threshold: 0.4
+    
+    # Evaluation criteria templates
+    criteria:
+      relevance:
+        description: "How well does the analysis match the business requirements?"
+        scale: "1-5 scale where 5 is perfectly relevant"
+        examples:
+          excellent: "Analysis directly addresses WBE advantages in target business lines"
+          good: "Analysis identifies relevant opportunities with minor gaps"
+          poor: "Analysis misses key business relevance factors"
+      
+      accuracy:
+        description: "How factually correct is the analysis?"
+        scale: "1-5 scale where 5 is completely accurate"
+        examples:
+          excellent: "All facts verified against source documents"
+          good: "Most facts accurate with minor inconsistencies"
+          poor: "Significant factual errors or hallucinations"
+      
+      actionability:
+        description: "How actionable are the insights provided?"
+        scale: "1-5 scale where 5 is immediately actionable"
+        examples:
+          excellent: "Clear next steps with specific recommendations"
+          good: "General guidance with some specific actions"
+          poor: "Vague insights with no clear actions"
+    
+    # Prompt engineering parameters
+    prompts:
+      system_prompt_version: "v1.0"
+      context_window_size: 4000
+      few_shot_examples: 3
+      chain_of_thought: true
+      output_format: "structured_json"
+      
+      # Prompt templates with adjustable parameters
+      templates:
+        opportunity_analysis:
+          max_description_length: 2000
+          include_documents: true
+          max_documents: 5
+          focus_areas: ["wbe_advantages", "business_relevance", "risk_assessment"]
+        
+        batch_analysis:
+          max_opportunities: 10
+          summary_length: 500
+          ranking_criteria: ["advantage_score", "relevance_score", "time_sensitivity"]
+    
+    # Evaluation metrics configuration
+    metrics:
+      # Traditional metrics
+      bleu:
+        enabled: true
+        n_grams: [1, 2, 3, 4]
+        smoothing: true
+      
+      rouge:
+        enabled: true
+        variants: ["rouge-1", "rouge-2", "rouge-l"]
+        use_stemmer: true
+      
+      # Semantic metrics
+      bert_score:
+        enabled: true
+        model: "bert-base-uncased"
+        rescale_with_baseline: true
+      
+      # Custom business metrics
+      business_relevance:
+        enabled: true
+        categories: ["hvac", "plumbing", "safety", "uniforms", "kitchen_bath"]
+        weight_by_category: true
+      
+      wbe_advantage_detection:
+        enabled: true
+        advantage_types: ["hub", "wbe", "mwbe", "sctrca"]
+        confidence_threshold: 0.8
+    
+    # A/B testing configuration
+    experiments:
+      enabled: true
+      default_split: 0.5
+      statistical_significance: 0.05
+      minimum_sample_size: 100
+      
+      # Current experiments
+      active_experiments:
+        - name: "temperature_comparison"
+          variants:
+            control: {"temperature": 0.1}
+            treatment: {"temperature": 0.3}
+          metric: "relevance_score"
+          
+        - name: "prompt_format_test"
+          variants:
+            control: {"output_format": "structured_json"}
+            treatment: {"output_format": "markdown"}
+          metric: "accuracy_score"
+    
+    # Quality assurance
+    quality_gates:
+      minimum_confidence: 0.7
+      maximum_hallucination_rate: 0.1
+      minimum_relevance_score: 0.6
+      safety_check_required: true
+    
+    # Performance monitoring
+    monitoring:
+      track_latency: true
+      track_token_usage: true
+      track_error_rates: true
+      alert_on_quality_degradation: true
+      quality_degradation_threshold: 0.1
+
+# Scraping configuration
+scraping:
+  user_agent: "OpportunityEngine/1.0 (+http://your-company-website.com/bot-info)"
+  request_delay: 3.0  # seconds between requests
+  timeout: 30
+  max_retries: 3
+  respect_robots_txt: true
+  off_peak_hours:
+    start: "23:00"  # 11 PM
+    end: "06:00"    # 6 AM
+
+# Enhanced Scraper Configurations
+scrapers:
+  esbd:
+    name: "Texas Electronic State Business Daily"
+    enabled: true
+    priority: 1
+    base_url: "http://www.txsmartbuy.gov/esbd"
+    search_url: "http://www.txsmartbuy.gov/esbd"
+    detail_url: "http://www.txsmartbuy.gov/esbd"
+    document_base_url: "http://www.txsmartbuy.gov/esbd"
+    extraction_mode: "javascript_enhanced"  # standardized, optimized, hybrid, javascript_enhanced
+    optimization_level: "balanced"  # balanced, speed, quality
+    performance:
+      use_selenium: true
+      parallel_processing: false
+      cache_responses: true
+      max_retries: 3
+      timeout: 30
+      max_workers: 2
+    field_mappings:
+      custom_fields:
+        - source: "reference_number"
+          target: "external_id"
+          transform: "uppercase"
+        - source: "agency_name"
+          target: "issuing_entity_name"
+          transform: "titlecase"
+      fallback_mappings:
+        title: ["description", "project_name", "solicitation_title"]
+        external_id: ["bid_number", "reference_number", "opportunity_id"]
+        issuing_entity_name: ["agency", "department", "entity"]
+        due_date: ["deadline", "closing_date", "submission_deadline"]
+    selectors:
+      opportunity_list: ".opportunity-item"
+      title: ".opportunity-title"
+      agency: ".agency-name"
+      bid_number: ".bid-number"
+      deadline: ".submission-deadline"
+      description: ".opportunity-description"
+      contact_info: ".contact-information"
+      nigp_codes: ".nigp-codes"
+      wbe_requirements: ".wbe-requirements"
+      document_links: ".document-links a"
+      pagination: ".pagination"
+      next_page: ".pagination .next a"
+    requires_selenium: true
+    rate_limit: 2
+
+  beaconbid:
+    base_url: "https://www.beaconbid.com"
+    search_url: "https://www.beaconbid.com/integrations/widget/city-of-houston"
+    extraction_mode: "api_first"  # api_first, html_only, selenium_only
+    rate_limit: 60
+    burst_size: 10
+    api_endpoints:
+      graphql: "/api/gql"
+      export: "/api/rest/agency/solicitations/export"
+      solicitations: "/solicitations"
+      widget: "/integrations/widget/city-of-houston"
+    selectors:
+      opportunity_list: ".solicitation-item, .opportunity-item, .bid-item, [data-opportunity], .card, .listing-item, [data-testid*='solicitation'], .table-row, tr"
+      title: ".solicitation-title, .opportunity-title, .bid-title, h3, h4, [data-testid*='title'], .title"
+      agency: ".agency-name, .organization, .department"
+      bid_number: ".solicitation-number, .bid-number, .opportunity-number, [data-testid*='number']"
+      deadline: ".due-date, .deadline, .closing-date, [data-testid*='date']"
+      description: ".solicitation-description, .opportunity-description, .summary"
+      contact_info: ".contact-information, .contact-details, .contact"
+      nigp_codes: ".nigp-codes, .codes, .classification"
+      wbe_requirements: ".wbe-requirements, .requirements, .certification"
+      document_urls: "a[href*='.pdf'], a[href*='.doc'], a[href*='.docx']"
+      url: "a[href]"
+    selenium:
+      enabled: false  # Disable Selenium to avoid Docker issues
+      headless: true
+      timeout: 30
+      wait_time: 10
+    playwright:
+      enabled: true  # Enable Playwright for client-side rendering
+      headless: true
+      timeout: 30
+      wait_time: 5000  # Wait 5 seconds for content to load
+
+  san_antonio:
+    base_url: "https://webapp1.sanantonio.gov/BidContractOpps/Default.aspx"
+    extraction_mode: "standardized"  # Start with standardized for new portal
+    optimization_level: "balanced"
+    performance:
+      use_selenium: false
+      parallel_processing: false
+      cache_responses: true
+      max_retries: 3
+      timeout: 30
+      max_workers: 2
+    field_mappings:
+      custom_fields:
+        - source: "bid_number"
+          target: "external_id"
+          transform: "uppercase"
+        - source: "department"
+          target: "issuing_entity_name"
+          transform: "titlecase"
+      fallback_mappings:
+        title: ["description", "project_name", "solicitation_title"]
+        external_id: ["bid_number", "reference_number", "opportunity_id"]
+        issuing_entity_name: ["department", "agency", "entity"]
+        due_date: ["closing_date", "deadline", "submission_deadline"]
+    selectors:
+      opportunity_list: "table#ContentPlaceHolder1_gvBidContractOpps tr"
+      title: "td:nth-child(1) a"
+      bid_number: "td:nth-child(1) a"  # Extract from title link text
+      type: "td:nth-child(2)"
+      department: "td:nth-child(3)"
+      release_date: "td:nth-child(4)"
+      blackout_start: "td:nth-child(5)"
+      deadline: "td:nth-child(6) span"
+      detail_link: "td:nth-child(1) a"
+      pagination: "table tr:last-child"
+    requires_selenium: false
+    rate_limit: 2
+
+# Portal configurations (legacy - for backward compatibility)
+portals:
+  esbd:
+    name: "Texas Electronic State Business Daily"
+    base_url: "https://www.txsmartbuy.gov/esbd"
+    enabled: true
+    priority: 1
+    
+  houston_beaconbid:
+    name: "City of Houston BeaconBid"
+    base_url: "https://www.beaconbid.com"
+    search_url: "https://www.beaconbid.com/solicitations/city-of-houston/open"
+    enabled: true
+    priority: 2
+    selectors:
+      opportunity_list: ".solicitation-item"
+      title: ".solicitation-title"
+      agency: ".agency-name"
+      bid_number: ".solicitation-number"
+      deadline: ".due-date"
+      description: ".solicitation-description"
+      contact_info: ".contact-information"
+      nigp_codes: ".nigp-codes"
+      wbe_requirements: ".wbe-requirements"
+      document_links: ".document-links a"
+      pagination: ".pagination"
+      next_page: ".pagination .next a"
+    
+  san_antonio:
+    name: "City of San Antonio"
+    base_url: "https://www.sa.gov/Directory/Departments/Finance/About/Divisions/Procurement/Bidding-Contracting/Opportunities"
+    enabled: true
+    priority: 3
+    
+  bexar_county:
+    name: "Bexar County"
+    base_url: "https://www.bexar.org/581/Purchasing-Department"
+    enabled: true
+    priority: 4
+
+# NIGP Code mappings for business lines
+nigp_codes:
+  hvac:
+    - class_code: "031"
+      item_code: "69"
+      description: "Air Conditioning, Heating, and Ventilating Equipment, Parts and Accessories"
+      relevance_tier: 1
+    - class_code: "031"
+      item_code: "72"
+      description: "Pumps, Descaling, Circulating, etc. (For Air Conditioning)"
+      relevance_tier: 1
+      
+  plumbing:
+    - class_code: "670"
+      item_code: "51"
+      description: "Pipe and Tubing, Plumbing"
+      relevance_tier: 1
+    - class_code: "910"
+      item_code: "45"
+      description: "Kitchen and Bathroom Fixture Repair (Not Plumbing): Bathtubs, Sinks, etc."
+      relevance_tier: 2
+      
+  safety_equipment:
+    - class_code: "345"
+      item_code: "76"
+      description: "Safety Vests, Belts, and Flags"
+      relevance_tier: 1
+    - class_code: "680"
+      item_code: "89"
+      description: "Vests, Safety, Reflective"
+      relevance_tier: 1
+      
+  uniforms:
+    - class_code: "200"
+      item_code: "86"
+      description: "Uniforms, Blended Fabric"
+      relevance_tier: 1
+    - class_code: "200"
+      item_code: "88"
+      description: "Uniforms, Synthetic Fabric"
+      relevance_tier: 1
+      
+  kitchen_bath:
+    - class_code: "485"
+      item_code: "13"
+      description: "Kitchen Equipment and Supplies (Not Otherwise Classified)"
+      relevance_tier: 1
+    - class_code: "195"
+      item_code: "XX"
+      description: "Food Service Other Kitchen Equipment"
+      relevance_tier: 2
+
+# Advantage Scoring Engine Configuration
+scoring:
+  # Algorithm weights (must sum to 1.0 for base components)
+  weights:
+    relevance_weight: 0.4      # Weight for AI relevance score
+    advantage_type_weight: 0.3  # Weight for certification type
+    goal_percentage_weight: 0.2 # Weight for goal percentage
+    business_line_weight: 0.1   # Weight for business line match
+  
+  # Advantage type weights
+  advantage_types:
+    hub: 1.0        # Historically Underutilized Business
+    wbe: 0.9        # Woman-owned Business Enterprise
+    mwbe: 0.8       # Minority/Woman-owned Business Enterprise
+    sctrca: 0.7     # Small/Disadvantaged Business
+  
+  # Business line category weights
+  business_lines:
+    hvac: 1.0           # HVAC systems (primary)
+    plumbing: 0.95      # Plumbing supplies/services
+    safety: 0.90        # Safety equipment
+    uniforms: 0.85      # Uniforms and workwear
+    kitchen_bath: 0.80  # Kitchen and bath supplies
+    other: 0.30         # Other categories
+  
+  # Time decay parameters
+  time_decay:
+    max_days: 365           # Maximum days for full time decay
+    min_factor: 0.1         # Minimum time decay factor
+  
+  # Value scaling parameters
+  value_scaling:
+    min_value: 1000         # Minimum contract value for scaling
+    max_value: 1000000      # Maximum contract value for scaling
+  
+  # Performance settings
+  performance:
+    max_concurrent_scoring: 5    # Max concurrent scoring operations
+    batch_size: 100             # Default batch size for bulk operations
+    cache_scores: true          # Whether to cache calculated scores
+
+# Enhanced Reporting Configuration
+reporting:
+  template_path: "src/reporting/templates"
+  
+  email:
+    smtp_server: "${SMTP_SERVER:-smtp.gmail.com}"
+    smtp_port: 587
+    smtp_username: "${SMTP_USERNAME:-}"
+    smtp_password: "${SMTP_PASSWORD:-}"
+    use_tls: true
+    from_email: "${FROM_EMAIL:-noreply@wbe-discovery.com}"
+    from_name: "WBE Opportunity Discovery"
+    
+    scheduled_reports:
+      - name: "Daily High-Value Report"
+        recipients: ["${REPORT_RECIPIENT:-admin@example.com}"]
+        schedule:
+          frequency: "daily"
+          time: "09:00"
+        filter:
+          min_score: 0.7
+          days_ahead: 7
+          limit: 20
+        include_pdf: false
+      
+      - name: "Weekly Summary Report"
+        recipients: ["${REPORT_RECIPIENT:-admin@example.com}"]
+        schedule:
+          frequency: "weekly"
+          weekday: "monday"
+          time: "08:00"
+        filter:
+          min_score: 0.0
+          days_ahead: 30
+          limit: 50
+        include_pdf: true
+  
+  dashboard:
+    host: "127.0.0.1"
+    port: 8000
+    debug: false
+    auto_refresh_interval: 300  # seconds
+  
+  export:
+    pdf_enabled: true
+    csv_enabled: true
+    max_export_records: 1000
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "json"
+  handlers:
+    - type: "file"
+      filename: "logs/app.log"
+      max_bytes: 10485760  # 10MB
+      backup_count: 5
+    - type: "console"
+      
+# Monitoring configuration
+monitoring:
+  enabled: true
+  metrics_port: 8000
+  health_check_endpoint: "/health"
+  prometheus_metrics: true 
